@@ -8,10 +8,9 @@ Position_t
 position_init()
 {
 	Position_t new_pos;
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 6; j++) {
-			new_pos.piece_bitboards[i][j] = 0;
-		}
+	for (int i = 0; i < 12; i++) {
+
+		new_pos.piece_bitboards[i] = 0;
 	}
 	new_pos.turn = WHITE;
 	for (int i = 0; i < 2; i++) {

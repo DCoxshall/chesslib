@@ -48,7 +48,7 @@ typedef struct Move {
 
 /* Encodes all information necessary to represent a single position. */
 typedef struct Position {
-	Bitboard_t piece_bitboards[2][6];
+	Bitboard_t piece_bitboards[12];
 	Team turn;
 	bool castling_rights[2][2];
 	Square_t en_passant_target;

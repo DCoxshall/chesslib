@@ -42,56 +42,21 @@ game_init()
 // 	return 0;
 // }
 
-static void
-fill_square(Square_t square, char *grid, Bitboard_t bitboards[2][6])
-{
-	char piece = '.';
-	for (int color = 0; color < 2; color++) {
-		for (int type = 0; type < 6; type++) {
-			if (((bitboards[color][type] >> square) & 1) == 1) {
-				switch (type) {
-				case 0:
-					piece = 'p';
-					break;
-				case 1:
-					piece = 'r';
-					break;
-				case 2:
-					piece = 'n';
-					break;
-				case 3:
-					piece = 'b';
-					break;
-				case 4:
-					piece = 'q';
-					break;
-				case 5:
-					piece = 'k';
-					break;
-				}
-				if (color == 0) {
-					piece = toupper(piece);
-				}
-			}
-		}
-	}
-	if (piece)
-		grid[square] = piece;
-}
-
 void
 game_show(Game_t *game)
 {
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 6; j++) {
+	char *pieces = "PRNBQKprnbqk";
+	char grid[64] = { 0 };
+	Bitboard_t *bbs = game->current_position.piece_bitboards;
+
+	for (int grid_i = 0; grid_i < 64; grid_i++) {
+		for (int piece_i = 0; piece_i < 12; piece_i++) {
+			if (((bbs[piece_i] >> grid_i) & 1) == 1) {
+				grid[grid_i] = pieces[piece_i];
+			}
 		}
-	}
-	char grid[64];
-	for (int rank = 7; rank > -1; rank--) {
-		for (int file = 0; file < 8; file++) {
-			Square_t square = file * 8 + rank;
-			fill_square(square, grid,
-			    game->current_position.piece_bitboards);
+		if (grid[grid_i] == 0) {
+			grid[grid_i] = '.';
 		}
 	}
 
