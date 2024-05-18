@@ -7,10 +7,11 @@ int
 main()
 {
 	Game_t game = game_init();
-	game.current_position.piece_bitboards[0] = (uint64_t)1 << A8;
-	game.current_position.piece_bitboards[1] |= (uint64_t)1 << A1;
-	game.current_position.piece_bitboards[2] |= (uint64_t)1 << H1;
-	game.current_position.piece_bitboards[3] |= (uint64_t)1 << H8;
+
+	position_place_piece(&game.current_position, A8, 'P');
+	position_place_piece(&game.current_position, A1, 'R');
+	position_place_piece(&game.current_position, H1, 'N');
+	position_place_piece(&game.current_position, H8, 'B');
 
 	game_show(&game);
 }
