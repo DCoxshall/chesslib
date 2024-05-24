@@ -1,16 +1,24 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "Game.h"
+#include "List.h"
 
 int
 main()
 {
-	Game_t* game = game_init();
-
-	printf("FEN parsing result: %d\n",
-	    game_parse_fen(game,
-		"r3kbnr/p4ppp/2n1p3/qN6/P2pP3/5N2/1P3PPP/R1BQ1RK1 b Qq - 0 11"));
-
-	game_show(game);
+    List_t* list = list_init(sizeof(int)); 
+    int* elems[100];
+    for (int i = 0; i < 100; i++) {
+        elems[i] = malloc(sizeof(int));
+        *elems[i] = i + 1;
+        list_push(list, elems[i]);
+    }
+    for (int i = 0; i < 100; i++) {
+        int item = 0;
+        list_pop(list, &item);
+        printf("%d\n", item);
+    }
+    free(list);
 }

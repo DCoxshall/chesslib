@@ -1,17 +1,31 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
-typedef struct List {
+// Homogeneous list data structure.
+
+typedef struct Node {
 	void *value;
-	struct List *next;
+	struct Node *next;
+	struct Node *prev;
+} Node_t;
+
+typedef struct List {
+	Node_t *head;
+	Node_t *tail;
+	size_t length;
+    size_t elem_size; // Size in bytes of each element.
 } List_t;
 
-// Adds a position to the start of the list. 
-List_t *list_push(List_t *list, void* new_value);
+// Creates a new, empty list.
+List_t *list_init(size_t elem_size);
 
-// Copy all data from the last position on the list into `position`, and return
-// the new list with the last position removed. Will return nothing if the list
-// is empty.
-List_t *list_pop(List_t *list, void *location);
+// Adds a new value to the end of the list. `new_value` must be allocated on the
+// heap. This function doesn't make a copy of the value - it just stores a pointer to it in memory.
+int list_push(List_t *list, void *new_value);
+
+// Copy all data from the last element on the list into `location`, and return
+// the new list with the last position removed. Will return the list unedited if
+// the list is empty.
+int list_pop(List_t *list, void *location);
 
 #endif
