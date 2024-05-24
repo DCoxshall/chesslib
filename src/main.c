@@ -8,10 +8,9 @@ main()
 {
 	Game_t game = game_init();
 
-	position_place_piece(&game.current_position, A8, 'P');
-	position_place_piece(&game.current_position, A1, 'R');
-	position_place_piece(&game.current_position, H1, 'N');
-	position_place_piece(&game.current_position, H8, 'B');
+	printf("FEN parsing result: %d\n",
+	    game_parse_fen(&game,
+		"r3kbnr/p4ppp/2n1p3/qN6/P2pP3/5N2/1P3PPP/R1BQ1RK1 w Qq - 0 11"));
 
 	game_show(&game);
 }

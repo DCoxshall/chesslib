@@ -6,6 +6,25 @@
 
 #define Bitboard_t uint64_t
 
+typedef enum CastlingRights {
+	NO_RIGHTS,
+	q,
+	k,
+	kq,
+	Q,
+	Qq,
+	Qk,
+	Qkq,
+	K,
+	Kq,
+	Kk,
+	Kkq,
+	KQ,
+	KQq,
+    KQk,
+	KQkq,
+} CastlingRights_t;
+
 typedef enum PieceType {
 	PAWN,
 	ROOK,
@@ -50,7 +69,7 @@ typedef struct Move {
 typedef struct Position {
 	Bitboard_t piece_bitboards[12];
 	Team turn;
-	bool castling_rights[2][2];
+	CastlingRights_t castling_rights;
 	Square_t en_passant_target;
 	int half_moves;
 	int full_moves;
