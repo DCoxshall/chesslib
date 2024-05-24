@@ -4,18 +4,18 @@
 
 #include "Position.h"
 
-Position_t
+Position_t*
 position_init()
 {
-	Position_t new_pos;
+	Position_t *new_pos = malloc(sizeof(Position_t));
 	for (int i = 0; i < 12; i++) {
-		new_pos.piece_bitboards[i] = 0;
+		new_pos->piece_bitboards[i] = 0;
 	}
-	new_pos.turn = WHITE;
-	new_pos.castling_rights = KQkq;
-	new_pos.en_passant_target = NONE;
-	new_pos.half_moves = 0;
-	new_pos.full_moves = 0;
+	new_pos->turn = WHITE;
+	new_pos->castling_rights = KQkq;
+	new_pos->en_passant_target = NONE;
+	new_pos->half_moves = 0;
+	new_pos->full_moves = 0;
 	return new_pos;
 }
 

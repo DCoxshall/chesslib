@@ -76,7 +76,7 @@ typedef struct Position {
 } Position_t;
 
 /* Initialises an empty board with no pieces on it. */
-Position_t position_init();
+Position_t* position_init();
 
 int position_place_piece(Position_t *position, Square_t square, char piece);
 

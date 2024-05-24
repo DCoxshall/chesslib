@@ -9,12 +9,12 @@
 #include "Game.h"
 #include "Position.h"
 
-Game_t
+Game_t*
 game_init()
 {
-	Game_t new_game;
-	new_game.current_position = position_init();
-	new_game.position_stack = NULL;
+	Game_t* new_game = malloc(sizeof(Game_t));
+	new_game->current_position = position_init();
+	new_game->position_stack = NULL;
 	return new_game;
 }
 
@@ -28,7 +28,7 @@ parse_state_fen(Game_t *game, const char *token)
 	Square_t square = A8;
 	while (*token != 0) {
 		if (strchr("PRNQBKprnbqk", *token)) {
-			position_place_piece(&game->current_position, square,
+			position_place_piece(game->current_position, square,
 			    *token);
 			square += 8;
 		} else if (strchr("12345678", *token)) {
@@ -49,9 +49,9 @@ static int
 parse_turn_fen(Game_t *game, const char *token)
 {
 	if (!strcmp("w", token)) {
-		game->current_position.turn = WHITE;
+		game->current_position->turn = WHITE;
 	} else if (!strcmp("b", token)) {
-		game->current_position.turn = BLACK;
+		game->current_position->turn = BLACK;
 	} else {
 		return 1;
 	}
@@ -66,8 +66,7 @@ parse_castling_fen(Game_t *game, char *token)
 		"Kq", "Kk", "Kkq", "KQ", "KQq", "KQk", "KQkq" };
 	for (int i = 0; i < 16; i++) {
 		if (!strcmp(token, options[i])) {
-			game->current_position.castling_rights = i;
-			printf("%d\n", i);
+			game->current_position->castling_rights = i;
 			return 0;
 		}
 	}
@@ -78,7 +77,7 @@ static int
 parse_en_passant_fen(Game_t *game, const char *token)
 {
 	if (!strcmp(token, "-")) {
-		game->current_position.en_passant_target = NONE;
+		game->current_position->en_passant_target = NONE;
 		return 0;
 	}
 
@@ -96,7 +95,7 @@ parse_en_passant_fen(Game_t *game, const char *token)
 	int file_no = (int)(strchr("abcdefgh", token[0]) - alphabet);
 	int rank_no = (int)(strchr("12345678", token[0]) - numbers);
 
-	game->current_position.en_passant_target = file_no * 8 + rank_no;
+	game->current_position->en_passant_target = file_no * 8 + rank_no;
 	return 0;
 }
 
@@ -119,7 +118,7 @@ game_parse_fen(Game_t *game, const char *orig_fen)
 	// Create a new game to parse into. If the entire FEN is parsed
 	// successfully into this game, copy the position into the original
 	// game. If not, the original game is left untouched.
-	Game_t new_game = game_init();
+	Game_t* new_game = game_init();
 	// Create a new FEN string to operate on, since we don't want to change
 	// the original FEN.
 	char *fen;
@@ -135,6 +134,7 @@ game_parse_fen(Game_t *game, const char *orig_fen)
 		fields[i] = strtok(NULL, " ");
 		if (fields[i] == NULL) {
 			free(fen);
+            free(new_game);
 			return 7;
 		}
 	}
@@ -142,49 +142,57 @@ game_parse_fen(Game_t *game, const char *orig_fen)
 	// There's more data than just the 6 fields we want; an invalid FEN.
 	if (strtok(NULL, " ") != NULL) {
 		free(fen);
+        free(new_game);
 		return 7;
 	}
 
 	// Parse state
-	if (parse_state_fen(&new_game, fields[0]) == 1) {
+	if (parse_state_fen(new_game, fields[0]) == 1) {
 		free(fen);
+        free(new_game);
 		return 1;
 	}
 
 	// Parse turn
-	if (parse_turn_fen(&new_game, fields[1]) == 1) {
+	if (parse_turn_fen(new_game, fields[1]) == 1) {
 		free(fen);
+        free(new_game);
 		return 2;
 	}
 
 	// Parse castling.
-	if (parse_castling_fen(&new_game, fields[2]) == 1) {
+	if (parse_castling_fen(new_game, fields[2]) == 1) {
 		free(fen);
+        free(new_game);
 		return 3;
 	}
 
 	// Parse en passant square.
-	if (parse_en_passant_fen(&new_game, fields[3]) == 1) {
+	if (parse_en_passant_fen(new_game, fields[3]) == 1) {
 		free(fen);
+        free(new_game);
 		return 4;
 	}
 
 	// Parse half and full moves
-	if (parse_move_fen(&new_game.current_position.half_moves, fields[4]) ==
+	if (parse_move_fen(&new_game->current_position->half_moves, fields[4]) ==
 	    1) {
 		free(fen);
+        free(new_game);
 		return 5;
 	}
-	if (parse_move_fen(&new_game.current_position.full_moves, fields[5]) ==
+	if (parse_move_fen(&new_game->current_position->full_moves, fields[5]) ==
 	    1) {
 		free(fen);
+        free(new_game);
 		return 6;
 	}
 
 	// If every field has parsed correctly, copy data from temporary game
 	// into permanent game and return.
-	memcpy(game, &new_game, sizeof(Game_t));
+	memcpy(game, new_game, sizeof(Game_t));
 	free(fen);
+    free(new_game);
 	return 0;
 }
 
@@ -206,7 +214,7 @@ game_show(Game_t *game)
 {
 	char *pieces = "PRNBQKprnbqk";
 	char grid[64] = { 0 };
-	Bitboard_t *bbs = game->current_position.piece_bitboards;
+	Bitboard_t *bbs = game->current_position->piece_bitboards;
 
 	for (int grid_i = 0; grid_i < 64; grid_i++) {
 		for (int piece_i = 0; piece_i < 12; piece_i++) {
@@ -230,11 +238,11 @@ game_show(Game_t *game)
 	char castling[5] = { '-', 0, 0, 0, 0 };
 	char turn;
 
-	square_to_string(game->current_position.en_passant_target,
+	square_to_string(game->current_position->en_passant_target,
 	    en_passant_square);
 
 	int j = 0;
-	uint8_t rights = game->current_position.castling_rights;
+	uint8_t rights = game->current_position->castling_rights;
 	for (int i = 3; i >= 0; i--) {
 		if (((rights >> i) & 1) == 1) {
 			castling[j] = "qkQK"[i];
@@ -242,13 +250,13 @@ game_show(Game_t *game)
 		}
 	}
 
-	if (game->current_position.turn == WHITE) {
+	if (game->current_position->turn == WHITE) {
 		turn = 'w';
 	} else {
 		turn = 'b';
 	}
 
 	printf("%c %s %s %d %d\n", turn, castling, en_passant_square,
-	    game->current_position.half_moves,
-	    game->current_position.full_moves);
+	    game->current_position->half_moves,
+	    game->current_position->full_moves);
 }

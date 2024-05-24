@@ -5,11 +5,11 @@
 #include "Position.h"
 
 typedef struct Game {
-	Position_t current_position;
+	Position_t* current_position;
 	List_t *position_stack;
 } Game_t;
 
-Game_t game_init();
+Game_t* game_init();
 
 /* Pretty print the game to output. */
 void game_show(Game_t *game);
