@@ -21,7 +21,7 @@ typedef enum CastlingRights {
 	Kkq,
 	KQ,
 	KQq,
-    KQk,
+	KQk,
 	KQkq,
 } CastlingRights_t;
 
@@ -34,18 +34,34 @@ typedef enum PieceType {
 	KING,
 } PieceType_t;
 
-/* The enum index represents the bitshift necessary to reach that square. */
+typedef enum Team {
+	WHITE,
+	BLACK,
+} Team_t;
+
+typedef struct {
+	PieceType_t type;
+	Team_t team;
+} Piece_t;
+
+// Create a new Piece_t from a token in the string "PRNBQKprnbqk". If `token` is
+// invalid, returns 1 and does not change `piece`.
+int piece_init(Piece_t *piece, char token);
+
+// The enum index represents the bitshift necessary to reach that square. This
+// bitboard implementation follows the scheme listed here:
+// https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
 typedef enum Square {
 	NONE = -1,
 	// clang-format off
-	A1, A2, A3, A4, A5, A6, A7, A8, 
-	B1, B2, B3, B4, B5, B6, B7, B8, 
-	C1, C2, C3, C4, C5, C6, C7, C8, 
-	D1, D2, D3, D4, D5, D6, D7, D8, 
-	E1, E2, E3, E4, E5, E6, E7, E8, 
-	F1, F2, F3, F4, F5, F6, F7, F8, 
-	G1, G2, G3, G4, G5, G6, G7, G8, 
-	H1, H2, H3, H4, H5, H6, H7, H8,
+    A1, B1, C1, D1, E1, F1, G1, H1,
+    A2, B2, C2, D2, E2, F2, G2, H2,
+    A3, B3, C3, D3, E3, F3, G3, H3,
+    A4, B4, C4, D4, E4, F4, G4, H4,
+    A5, B5, C5, D5, E5, F5, G5, H5,
+    A6, B6, C6, D6, E6, F6, G6, H6,
+    A7, B7, C7, D7, E7, F7, G7, H7,
+    A8, B8, C8, D8, E8, F8, G8, H8,
 	// clang-format on
 } Square_t;
 
@@ -54,30 +70,47 @@ enum CastlingIndices {
 	QUEENSIDE,
 };
 
-typedef enum Team {
-	WHITE,
-	BLACK,
-} Team;
-
 typedef struct Move {
 	Square_t start;
 	Square_t destination;
 	PieceType_t promotion_piece;
 } Move_t;
 
-/* Encodes all information necessary to represent a single position. */
+// Encodes all information necessary to represent a single position. Each
+// position also acts as the final node in a linked list of positions,
+// representing a game history.
 typedef struct Position {
 	Bitboard_t piece_bitboards[12];
-	Team turn;
+	Team_t turn;
 	CastlingRights_t castling_rights;
 	Square_t en_passant_target;
 	int half_moves;
 	int full_moves;
+	struct Position *prev_position;
 } Position_t;
 
 /* Initialises an empty board with no pieces on it. */
-Position_t* position_init();
+Position_t *position_init();
 
-int position_place_piece(Position_t *position, Square_t square, char piece);
+// Makes a move on the board, returning the new position. Assumes the move is
+// valid.
+Position_t *position_make_move(Position_t *position, Move_t move);
+
+// Undoes the last move made on the board. If no moves have been made, this
+// function just returns the position that was passed to it.
+Position_t *position_undo_move(Position_t position);
+
+//  Parses a FEN string into a game. This function does not check for board
+//  validity - it will happily parse a FEN representing an illegal position. If
+//  the FEN string is rejected for any reason, this function will return a
+//  number between 1 and 7 inclusive, representing the field of the FEN that
+//  wouldn't parse, with 7 representing a length/form problem. The original game
+//  struct will not have been edited in any way unless every field parses
+//  correctly. On success, it will return 0. It will also reset any move history
+//  i.e. prev_position is set to NULL.
+int position_parse_fen(Position_t *position, const char *orig_fen);
+
+// Pretty-print a representation of `position` to standard output.
+void position_show(Position_t *position);
 
 #endif

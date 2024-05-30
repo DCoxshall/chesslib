@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wpedantic
+CFLAGS = -std=c99 -Wall -Wpedantic -g
 
 OBJDIR = obj
 SRCDIR = src
@@ -7,10 +7,7 @@ OUTDIR = target
 
 SOURCES = \
 	Position.c \
-	main.c \
-	Game.c \
-	List.c
-
+	main.c
 
 SOURCE_FILES = $(SOURCES:%.c=$(SRCDIR)/%.c)
 OBJECT_FILES = $(SOURCES:%.c=$(OBJDIR)/%.o)
