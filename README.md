@@ -9,3 +9,5 @@ A computer chess library written in C.
 
 ### Move Generation
 - Include lists of moves.
+
+get_valid_moves -> is_move_valid -> position_make_move

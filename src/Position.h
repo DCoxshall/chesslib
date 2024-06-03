@@ -6,6 +6,12 @@
 
 #define Bitboard_t uint64_t
 
+#define Optional(type)        \
+	struct {              \
+		bool present; \
+		type value;   \
+	}
+
 typedef enum CastlingRights {
 	NO_RIGHTS,
 	q,
@@ -39,7 +45,7 @@ typedef enum Team {
 	BLACK,
 } Team_t;
 
-typedef struct {
+typedef struct Piece {
 	PieceType_t type;
 	Team_t team;
 } Piece_t;
@@ -52,7 +58,6 @@ int piece_init(Piece_t *piece, char token);
 // bitboard implementation follows the scheme listed here:
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
 typedef enum Square {
-	NONE = -1,
 	// clang-format off
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
@@ -73,41 +78,43 @@ enum CastlingIndices {
 typedef struct Move {
 	Square_t start;
 	Square_t destination;
-	PieceType_t promotion_piece;
+	Optional(PieceType_t) promotion_piece;
 } Move_t;
 
 // Encodes all information necessary to represent a single position. Each
 // position also acts as the final node in a linked list of positions,
 // representing a game history.
 typedef struct Position {
-	Bitboard_t piece_bitboards[12];
+	Bitboard_t piece_bitboards[12]; // [P, R, N, B, Q, K, p, r, n, b, q, k]
 	Team_t turn;
 	CastlingRights_t castling_rights;
-	Square_t en_passant_target;
+	Optional(Square_t) en_passant_target;
 	int half_moves;
 	int full_moves;
 	struct Position *prev_position;
 } Position_t;
 
-/* Initialises an empty board with no pieces on it. */
+// Initialises an empty board with no pieces on it.
 Position_t *position_init();
 
-// Makes a move on the board, returning the new position. Assumes the move is
-// valid.
-Position_t *position_make_move(Position_t *position, Move_t move);
+// Makes a move on the board, returning the new position. This function is
+// allowed to assume that the move is valid - passing in an invalid move is
+// undefined behaviour. TODO: Once move validation functions are implemented,
+// this function can be changed to allow for moves passed in to be invalid.
+int position_make_move(Position_t **position, const Move_t *move);
 
 // Undoes the last move made on the board. If no moves have been made, this
 // function just returns the position that was passed to it.
 Position_t *position_undo_move(Position_t position);
 
-//  Parses a FEN string into a game. This function does not check for board
-//  validity - it will happily parse a FEN representing an illegal position. If
-//  the FEN string is rejected for any reason, this function will return a
-//  number between 1 and 7 inclusive, representing the field of the FEN that
-//  wouldn't parse, with 7 representing a length/form problem. The original game
-//  struct will not have been edited in any way unless every field parses
-//  correctly. On success, it will return 0. It will also reset any move history
-//  i.e. prev_position is set to NULL.
+// Parses a FEN string into a game. This function does not check for board
+// validity - it will happily parse a FEN representing an illegal position. If
+// the FEN string is rejected for any reason, this function will return a
+// number between 1 and 7 inclusive, representing the field of the FEN that
+// wouldn't parse, with 7 representing a length/form problem. The original game
+// struct will not have been edited in any way unless every field parses
+// correctly. On success, it will return 0. It will also reset any move history
+// i.e. prev_position is set to NULL.
 int position_parse_fen(Position_t *position, const char *orig_fen);
 
 // Pretty-print a representation of `position` to standard output.
