@@ -70,6 +70,8 @@ typedef enum Square {
 	// clang-format on
 } Square_t;
 
+void square_to_string(Square_t square, char string[3]);
+
 enum CastlingIndices {
 	KINGSIDE,
 	QUEENSIDE,
@@ -80,6 +82,8 @@ typedef struct Move {
 	Square_t destination;
 	Optional(PieceType_t) promotion_piece;
 } Move_t;
+
+void move_to_string(const Move_t move, char string[6]);
 
 // Encodes all information necessary to represent a single position. Each
 // position also acts as the final node in a linked list of positions,
@@ -96,16 +100,6 @@ typedef struct Position {
 
 // Initialises an empty board with no pieces on it.
 Position_t *position_init();
-
-// Makes a move on the board, returning the new position. This function is
-// allowed to assume that the move is valid - passing in an invalid move is
-// undefined behaviour. TODO: Once move validation functions are implemented,
-// this function can be changed to allow for moves passed in to be invalid.
-int position_make_move(Position_t **position, const Move_t *move);
-
-// Undoes the last move made on the board. If no moves have been made, this
-// function just returns the position that was passed to it.
-Position_t *position_undo_move(Position_t position);
 
 // Parses a FEN string into a game. This function does not check for board
 // validity - it will happily parse a FEN representing an illegal position. If

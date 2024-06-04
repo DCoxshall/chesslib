@@ -46,97 +46,6 @@ position_flip_turn(Position_t *position)
 	position->turn = (position->turn == WHITE) ? BLACK : WHITE;
 }
 
-// TODO: Once move validation functions are implemented, this function can be
-// rewritten "properly". Current implementation assumes the move passed in is
-// valid given the position. May crash if invalid move is passed in.
-int
-position_make_move(Position_t **position, const Move_t *move)
-{
-	Position_t *new_position = position_init();
-	Piece_t moving_piece;
-	Bitboard_t start_square_mask = ((uint64_t)1 << move->start);
-	// Bitboard_t end_square_mask = ((uint64_t)1 << move->destination);
-
-	memcpy(new_position, *position, sizeof(Position_t));
-	position_flip_turn(new_position);
-	new_position->prev_position = *position;
-
-	// Find the moving piece.
-	for (int i = 0; i < 12; i++) {
-		if (new_position->piece_bitboards[i] & start_square_mask) {
-			moving_piece.type = i % 6;
-			moving_piece.team = (i > 5) ? BLACK : WHITE;
-			break;
-		}
-	}
-
-	// Check for promotion. Note that current implementation allows
-	// promotion to *any* piece.
-	if (move->promotion_piece.present == true) {
-		Piece_t landing_piece = { .type = move->promotion_piece.value,
-			.team = (*position)->turn };
-		printf("%d\n", landing_piece.type);
-		position_place_piece(new_position, move->destination,
-		    landing_piece);
-	}
-
-	// Check for en passant: if the piece moving is a pawn, and the
-	// destination square is empty, and the start file != end file, it's en
-	// passant.
-	if (moving_piece.type == PAWN &&
-	    move->destination % 8 != move->start % 8 &&
-	    piece_at_square(new_position, move->destination) == '.') {
-		// Clear the square behind the end square.
-		if (new_position->turn == WHITE) {
-			position_clear_square(new_position,
-			    move->destination + 8);
-		} else {
-			position_clear_square(new_position,
-			    move->destination - 8);
-		}
-	}
-
-	// Check for castling: If the king moves more than one square on the
-	// same row, it's castling.
-	if (move->destination / 8 == move->start / 8 &&
-	    abs(move->destination - move->start) > 1 &&
-	    moving_piece.type == KING) {
-		// Destination square can be one of four squares. Castle
-		// accordingly.
-        Piece_t rook = {.type = ROOK};
-        rook.team = (new_position->turn == WHITE) ? BLACK : WHITE;
-        switch (move->destination) {
-            case G1:
-                position_clear_square(new_position, H1);
-                position_place_piece(new_position, F1, rook);
-                break;
-            case C1:
-                position_clear_square(new_position, A1);
-                position_place_piece(new_position, D1, rook);
-                break;
-            case G8:
-                position_clear_square(new_position, H8);
-                position_place_piece(new_position, F8, rook);
-                break;
-            case C8:
-                position_clear_square(new_position, A8);
-                position_place_piece(new_position, D8, rook);
-                break;
-            default:
-                free(new_position);
-                return 1;
-        }
-	}
-
-	// After *every* move, the start square is empty and the end square
-	// contains the piece that is moving.
-	position_clear_square(new_position, move->start);
-	position_place_piece(new_position, move->destination, moving_piece);
-
-	*position = new_position;
-	return 0;
-}
-
 /// DISPLAY FUNCTIONS ///
 
 static void
@@ -148,13 +57,29 @@ castling_to_string(CastlingRights_t rights, char string[5])
 	strcpy(string, castling_strings[rights]);
 }
 
-static void
+void
 square_to_string(Square_t square, char string[3])
 {
-	char *alphabet = "abcdefgh";
+	memset(string, 0, 3);
+    char *alphabet = "abcdefgh";
 	char *numbers = "12345678";
 	string[0] = alphabet[square % 8];
 	string[1] = numbers[square / 8];
+}
+
+void
+move_to_string(const Move_t move, char move_string[6])
+{
+	memset(move_string, 0, 6);
+	char start_square_string[3];
+	char destination_square_string[3];
+	square_to_string(move.destination, destination_square_string);
+	square_to_string(move.start, start_square_string);
+	strcat(move_string, start_square_string);
+	strcat(move_string, destination_square_string);
+	if (move.promotion_piece.present) {
+		move_string[4] = "prnbqk"[move.promotion_piece.value];
+	}
 }
 
 void
