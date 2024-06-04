@@ -52,7 +52,10 @@ typedef struct Piece {
 
 // Create a new Piece_t from a token in the string "PRNBQKprnbqk". If `token` is
 // invalid, returns 1 and does not change `piece`.
-int piece_init(Piece_t *piece, char token);
+int piece_init(Piece_t *piece, const char token);
+
+// Convert a piece into its ASCII representation.
+char piece_to_char(const Piece_t piece);
 
 // The enum index represents the bitshift necessary to reach that square. This
 // bitboard implementation follows the scheme listed here:
@@ -70,7 +73,8 @@ typedef enum Square {
 	// clang-format on
 } Square_t;
 
-void square_to_string(Square_t square, char string[3]);
+// Allocate a string representing the square passed in. E4 -> "e4" for example.
+char *square_to_string(const Square_t square);
 
 enum CastlingIndices {
 	KINGSIDE,
@@ -83,7 +87,8 @@ typedef struct Move {
 	Optional(PieceType_t) promotion_piece;
 } Move_t;
 
-void move_to_string(const Move_t move, char string[6]);
+// Allocate a string containing the UCI representation of a move.
+char *move_to_string(const Move_t move);
 
 // Encodes all information necessary to represent a single position. Each
 // position also acts as the final node in a linked list of positions,
@@ -113,5 +118,8 @@ int position_parse_fen(Position_t *position, const char *orig_fen);
 
 // Pretty-print a representation of `position` to standard output.
 void position_show(Position_t *position);
+
+// Flip the turn of a position.
+void position_flip_turn(Position_t *position);
 
 #endif

@@ -17,9 +17,11 @@ main()
 	Move_t move = {
 		.destination = E4,
 		.start = E2,
-		.promotion_piece = { .present = true, .value = QUEEN }
+		.promotion_piece = { .present = true, .value = KING }
 	};
-    char str[6];
-    move_to_string(move, str);
-    printf("%s\n", str);
+
+    char* repr = move_to_string(move);
+    printf("%s\n", repr);
+    free(repr);
+    free(pos);
 }

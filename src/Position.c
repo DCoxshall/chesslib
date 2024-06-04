@@ -7,6 +7,14 @@
 
 /// MISC. BOARD FUNCTIONS ///
 
+char
+piece_to_char(const Piece_t piece)
+{
+	if (piece.team == BLACK)
+		return "PRNBQKprnbqk"[piece.type * 2];
+	return "PRNBQKprnbqk"[piece.type];
+}
+
 static char
 piece_at_square(Position_t *position, Square_t square)
 {
@@ -25,7 +33,7 @@ static void
 position_clear_square(Position_t *position, Square_t square)
 {
 	for (int i = 0; i < 12; i++) {
-		position->piece_bitboards[i] &= ~((uint64_t)1 << square);
+		position->piece_bitboards[i] &= ~((Bitboard_t)1 << square);
 	}
 }
 
@@ -37,10 +45,10 @@ position_place_piece(Position_t *position, Square_t square, Piece_t piece)
 	// Ensure that no other piece is also on that square.
 	position_clear_square(position, square);
 	int bitboard_index = (piece.team * 6) + piece.type;
-	position->piece_bitboards[bitboard_index] |= ((uint64_t)1 << square);
+	position->piece_bitboards[bitboard_index] |= ((Bitboard_t)1 << square);
 }
 
-static void
+void
 position_flip_turn(Position_t *position)
 {
 	position->turn = (position->turn == WHITE) ? BLACK : WHITE;
@@ -57,29 +65,33 @@ castling_to_string(CastlingRights_t rights, char string[5])
 	strcpy(string, castling_strings[rights]);
 }
 
-void
-square_to_string(Square_t square, char string[3])
+char *
+square_to_string(Square_t square)
 {
-	memset(string, 0, 3);
-    char *alphabet = "abcdefgh";
+	char *square_str = malloc(3);
+	char *alphabet = "abcdefgh";
 	char *numbers = "12345678";
-	string[0] = alphabet[square % 8];
-	string[1] = numbers[square / 8];
+	square_str[0] = alphabet[square % 8];
+	square_str[1] = numbers[square / 8];
+	return square_str;
 }
 
-void
-move_to_string(const Move_t move, char move_string[6])
+char *
+move_to_string(const Move_t move)
 {
-	memset(move_string, 0, 6);
-	char start_square_string[3];
-	char destination_square_string[3];
-	square_to_string(move.destination, destination_square_string);
-	square_to_string(move.start, start_square_string);
-	strcat(move_string, start_square_string);
-	strcat(move_string, destination_square_string);
+	size_t str_len = (move.promotion_piece.present) ? 6 : 5;
+	char *move_str = malloc(str_len);
+	memset(move_str, 0, str_len);
+	char *start_square_string = square_to_string(move.start);
+	char *destination_square_string = square_to_string(move.destination);
+	strcat(move_str, start_square_string);
+	strcat(move_str, destination_square_string);
 	if (move.promotion_piece.present) {
-		move_string[4] = "prnbqk"[move.promotion_piece.value];
+		move_str[4] = "prnbqk"[move.promotion_piece.value];
 	}
+	free(start_square_string);
+	free(destination_square_string);
+	return move_str;
 }
 
 void
@@ -87,7 +99,8 @@ position_show(Position_t *position)
 {
 	char turn;
 	char castling[5] = { 0 };
-	char en_passant[3] = { 0 };
+	// char en_passant[3] = { 0 };
+	char *en_passant;
 
 	// TODO change loop to remove these variables.
 	Square_t square = A8;
@@ -96,9 +109,10 @@ position_show(Position_t *position)
 	turn = (position->turn == WHITE) ? 'w' : 'b';
 	castling_to_string(position->castling_rights, castling);
 	if (position->en_passant_target.present) {
-		square_to_string(position->en_passant_target.value, en_passant);
+		en_passant = square_to_string(
+		    position->en_passant_target.value);
 	} else {
-		strcpy(en_passant, "-");
+		en_passant = "-";
 	}
 
 	while (ctr < 64) {
@@ -182,10 +196,8 @@ parse_en_passant_fen(Position_t *position, const char *token)
 	if (strlen(token) != 2)
 		return 1;
 
-	if (token[0] < 'a' || token[0] > 'h')
-		return 1;
-
-	if (token[1] < '1' || token[1] > '8')
+	if (token[0] < 'a' || token[0] > 'h' || token[1] < '1' ||
+	    token[1] > '8')
 		return 1;
 
 	char *alphabet = "abcdefgh";
@@ -204,7 +216,7 @@ parse_move_fen(int *moves, char *token)
 	while (*c) {
 		if (*c < '0' || *c > '9')
 			return 1;
-		c += 1;
+		c++;
 	}
 	*moves = atoi(token);
 	return 0;
@@ -279,6 +291,7 @@ position_parse_fen(Position_t *position, const char *orig_fen)
 		free(new_position);
 		return 5;
 	}
+
 	if (parse_move_fen(&new_position->full_moves, fields[5]) == 1) {
 		free(fen);
 		free(new_position);
@@ -294,7 +307,7 @@ position_parse_fen(Position_t *position, const char *orig_fen)
 }
 
 int
-piece_init(Piece_t *piece, char token)
+piece_init(Piece_t *piece, const char token)
 {
 	int piece_index;
 	char *alphabet = "PRNBQKprnbqk";
@@ -307,8 +320,6 @@ piece_init(Piece_t *piece, char token)
 	piece->team = piece_index / 6;
 	return 0;
 }
-
-///
 
 Position_t *
 position_init()
