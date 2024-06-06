@@ -21,8 +21,8 @@ debug: $(OBJECT_FILES)
 	$(CC) -c $(CFLAGS) $(SRCDIR)/main.c -o $(OBJDIR)/main.o
 	$(CC) $(CFLAGS) $(OBJECT_FILES) obj/main.o -o $(OUTDIR)/chess
 
-test: build_lib tests/tests.c
-	$(CC) $(CFLAGS) $(TESTDIR)/tests.c -c -o $(OBJDIR)/$@.o
+test: build_lib tests/main.c
+	$(CC) $(CFLAGS) $(TESTDIR)/main.c -c -o $(OBJDIR)/$@.o
 	$(CC) $(CFLAGS) -o $(OUTDIR)/test -L$(OUTDIR) $(OBJDIR)/$@.o -l:chesslib.a
 
 $(OBJECT_FILES): $(OBJDIR)/%.o: $(SRCDIR)/%.c

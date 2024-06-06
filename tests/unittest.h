@@ -1,9 +1,11 @@
-#define MU_ASSERT(message, test)        \
+// Shamelessly appropriated from https://jera.com/techinfo/jtns/jtn002
+
+#define ASSERT(message, test)           \
 	do {                            \
 		if (!(test))            \
 			return message; \
 	} while (0)
-#define MU_RUN_TEST(test)               \
+#define RUN_TEST(test)                  \
 	do {                            \
 		char *message = test(); \
 		tests_run++;            \
