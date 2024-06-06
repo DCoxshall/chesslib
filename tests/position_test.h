@@ -3,11 +3,13 @@
 #include "unittest.h"
 #include "../src/Position.h"
 
+#define POSITION_SUITE_NAME "POSITION"
+
 char *
 test_piece_init()
 {
 	// Idea here is to test that each token in `tokens` produces the correct
-	// piece.
+	// piece - iterate through tokens and compare to each piece.
 	Piece_t piece;
 	int flag = 0;
 	char *tokens = "PRNBQKprnbqk";
