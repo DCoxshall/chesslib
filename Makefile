@@ -4,6 +4,7 @@ CFLAGS = -std=c99 -Wall -Wpedantic -g
 OBJDIR = obj
 SRCDIR = src
 OUTDIR = target
+TESTDIR = tests
 
 SOURCES = \
 	Position.c
@@ -19,6 +20,10 @@ debug: $(OBJECT_FILES)
 	mkdir -p $(OUTDIR)
 	$(CC) -c $(CFLAGS) $(SRCDIR)/main.c -o $(OBJDIR)/main.o
 	$(CC) $(CFLAGS) $(OBJECT_FILES) obj/main.o -o $(OUTDIR)/chess
+
+test: build_lib tests/tests.c
+	$(CC) $(CFLAGS) $(TESTDIR)/tests.c -c -o $(OBJDIR)/$@.o
+	$(CC) $(CFLAGS) -o $(OUTDIR)/test -L$(OUTDIR) $(OBJDIR)/$@.o -l:chesslib.a
 
 $(OBJECT_FILES): $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	mkdir -p $(OBJDIR)
