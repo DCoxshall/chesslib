@@ -16,7 +16,7 @@ run_suite(char *(*suite_function)(), char *suite_name)
 		printf("FAILED: %s\n", result);
 	} else {
 		printf("All tests in suite %s ran successfully.\n",
-		    POSITION_SUITE_NAME);
+		    suite_name);
 	}
 	tests_run = 0;
 }

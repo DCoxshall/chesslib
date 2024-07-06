@@ -11,7 +11,7 @@ char
 piece_to_char(const Piece_t piece)
 {
 	if (piece.team == BLACK)
-		return "PRNBQKprnbqk"[piece.type * 2];
+		return "PRNBQKprnbqk"[piece.type + 6];
 	return "PRNBQKprnbqk"[piece.type];
 }
 
@@ -73,6 +73,7 @@ square_to_string(Square_t square)
 	char *numbers = "12345678";
 	square_str[0] = alphabet[square % 8];
 	square_str[1] = numbers[square / 8];
+    square_str[2] = 0;
 	return square_str;
 }
 

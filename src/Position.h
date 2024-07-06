@@ -54,7 +54,7 @@ typedef struct Piece {
 // invalid, returns 1 and does not change `piece`.
 int piece_init(Piece_t *piece, const char token);
 
-// Convert a piece into its ASCII representation.
+// Convert a piece into its ASCII representation. Returns 0 if `piece` is invalid.
 char piece_to_char(const Piece_t piece);
 
 // The enum index represents the bitshift necessary to reach that square. This
@@ -76,6 +76,7 @@ typedef enum Square {
 // Allocate a string representing the square passed in. E4 -> "e4" for example.
 char *square_to_string(const Square_t square);
 
+// Unused. Maybe remove? Might turn out to be useful.
 enum CastlingIndices {
 	KINGSIDE,
 	QUEENSIDE,
